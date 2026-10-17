@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designing a Solution – Grade 9 AI, Week 3</title>
+<style>
+:root{--red:#b8123c;--gold:#d18a0a;--ink:#16213a;--mut:#5b6679;--bg:#fbfaf8;--card:#fff;--line:#e5dfd6;--ok:#127a46;--bad:#b42318;--tint:#fdf1ee;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--ink:#f1eee8;--mut:#a9b1c0;--bg:#141822;--card:#1d2330;--line:#323a4b;--tint:#2a2230;--red:#e5476b;--gold:#e3a53a;--ok:#4cc58a;--bad:#ff7a6b;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:18px/1.55 "Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;min-height:100vh}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 20px;background:var(--red);color:#fff;font-size:14px;font-weight:600}
+header span:last-child{opacity:.85;font-weight:400}
+main{max-width:920px;margin:0 auto;padding:24px 20px 110px}
+.slide{display:none}.slide.on{display:block;animation:in .25s}
+@keyframes in{from{opacity:0}to{opacity:1}}
+@media (prefers-reduced-motion:reduce){.slide.on{animation:none}}
+h1{font:800 clamp(34px,6vw,54px)/1.08 Georgia,"Times New Roman",serif;margin:.2em 0 .3em}
+h2{font:700 clamp(26px,4vw,36px)/1.15 Georgia,serif;margin:0 0 .4em}
+h3{margin:1.2em 0 .3em}
+.sub{color:var(--mut)}
+.hero{background:var(--red);color:#fff;border-radius:16px;padding:36px 28px;border-bottom:6px solid var(--gold)}
+.hero p{max-width:60ch;font-size:20px}
+.tag{display:inline-block;border:1px solid currentColor;border-radius:99px;padding:2px 12px;font-size:14px;margin-right:6px}
+.box{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:10px;padding:14px 18px;margin:16px 0}
+.box.blue{border-left-color:#2563eb}.box.purple{border-left-color:#7c3aed}.box.green{border-left-color:var(--ok)}
+.box b.t{display:block;margin-bottom:4px}
+dl{display:grid;grid-template-columns:max-content 1fr;gap:6px 16px;margin:0}
+dt{font-weight:700;color:var(--red)}dd{margin:0}
+.flow{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap;margin:22px 0}
+.flow .n{flex:1 1 150px;border:2px solid;border-radius:12px;padding:12px;text-align:center;background:var(--card)}
+.flow .n small{display:block;color:var(--mut)}
+.flow .arr{align-self:center;font-size:26px;color:var(--mut)}
+.n.d{border-color:#15803d}.n.p{border-color:#ea580c}.n.t{border-color:#2563eb;border-style:dashed}.n.o{border-color:#7c3aed}
+.act{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:18px 0}
+.act>.h{background:linear-gradient(90deg,var(--red),var(--gold));color:#fff;padding:10px 18px;font-weight:700}
+.act>.h small{display:block;font-weight:400;opacity:.9}
+.act>.b{padding:16px 18px}
+.case .h{background:#c2410c}
+button,.opt{font:inherit;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:left}
+button:hover,.opt:hover{border-color:var(--red)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.opt{display:block;width:100%;margin:8px 0}
+.opt.sel{border-color:var(--red);background:var(--tint)}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}
+.opt.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 15%,transparent)}
+.opt:disabled{cursor:default}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px}
+.fb{margin-top:10px;font-weight:600;min-height:1.5em}
+.fb.ok{color:var(--ok)}.fb.no{color:var(--bad)}
+.pri{background:var(--red);color:#fff;border-color:var(--red);text-align:center}
+.pri:hover{background:var(--ink);border-color:var(--ink)}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 16px;justify-content:center}
+nav .bar{flex:1;max-width:420px;height:8px;background:var(--line);border-radius:9px;overflow:hidden}
+nav .bar i{display:block;height:100%;background:var(--red);width:0;transition:width .25s}
+nav span{font-size:14px;color:var(--mut);min-width:64px;text-align:center}
+#cases{font-size:14px;color:var(--mut)}
+.fi{font:inherit;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:8px;padding:8px 10px;min-width:0}
+textarea{width:100%;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px;min-height:70px}
+table{width:100%;border-collapse:collapse;margin:8px 0}
+td,th{border:1px solid var(--line);padding:4px;text-align:left;vertical-align:top}
+th{padding:8px}td:first-child{width:120px;padding:8px;font-weight:600}
+td textarea{border:0;min-height:56px}
+input.s{font:inherit;color:inherit;background:var(--card);border:0;border-bottom:2px solid var(--line);width:160px;margin-right:12px}
+@media (max-width:600px){.cols{grid-template-columns:1fr}.flow .arr{display:none}main{padding-bottom:120px}}
+@media print{header,nav{display:none}.slide{display:none!important}#ws{display:block!important}body{background:#fff;color:#000}.noprint{display:none}}
+</style>
+</head>
+<body>
+<header><span>NATIONAL AI CURRICULUM · ADEK</span><span>Grade 9 · Main Course · Term 1 · Week 3 Core</span></header>
+<div id="tban" hidden role="status" style="background:var(--gold);color:#16213a;padding:6px 20px;font-size:14px;font-weight:600;text-align:center"></div>
+<main>
+
+<section class="slide hero-s">
+ <div class="hero">
+  <p><span class="tag">Grade 9 · Term 1</span><span class="tag">Week 3 · Core</span></p>
+  <h1>Designing a Solution</h1>
+  <p>Today you become a designer. You take a defined problem and design a structured workflow whose components – data, prompt and tool – work together to solve it, then test whether the solution really holds. About 45 minutes.</p>
+ </div>
+ <div class="cols">
+  <div class="box"><b class="t">Previously</b>You tested a system and justified which component mattered most to the output.</div>
+  <div class="box"><b class="t">Next</b>In the Lab you build it for real, fix the weakest part, and chain a second step.</div>
+ </div>
+<div class="box blue" id="sform"><b class="t">Before you start</b>
+  <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:end">
+   <label>Your name<br><input class="fi" id="sname" autocomplete="off" style="width:220px"></label>
+   <label>Grade and class (for example 9A)<br><input class="fi" id="sgrade" autocomplete="off" style="width:160px" value="Grade 9"></label>
+   <button class="pri" id="sstart">Start lesson</button>
+  </div>
+  <div class="fb" id="sfb" role="status"></div>
+  <span class="sub">Used only to label your answers when you submit your worksheet. Do not type any other personal details in this lesson.</span></div>
+  <p class="sub">Use the arrow keys or the buttons below to move through the lesson. <span id="cases">Cases cracked: 0 / 3</span></p>
+</section>
+
+<section class="slide">
+ <div class="act"><div class="h">Pre-assessment: what do you already know?<small>5 quick questions. Not graded. Answer honestly so we know where to start. 30 seconds per question.</small></div>
+ <div class="b" id="pre"></div></div>
+</section>
+
+<section class="slide">
+ <div class="act"><div class="h">Warm-up 2: Run the workflow<small>5 minutes. Choose the data and the prompt, run the simulated tool, then check the output.</small></div>
+ <div class="b" id="wf"></div></div>
+</section>
+
+<section class="slide">
+ <h2>Learning intention</h2>
+ <div class="box blue"><b class="t">We are learning to…</b>
+  <ul style="margin:0;padding-left:20px">
+   <li>Design a structured workflow in which data, a prompt and a tool work together to complete a defined task.</li>
+   <li>Build and run the workflow and justify why each component gave the result it did.</li>
+   <li>Use terms like component, data, prompt, tool and interaction correctly to explain how my solution fits together.</li>
+  </ul></div>
+</section>
+
+<section class="slide">
+ <h2>Success criteria</h2>
+ <div class="box green"><b class="t">I can…</b>
+  <ul style="margin:0;padding-left:20px">
+   <li>Design a structured workflow in which data, a prompt and a tool work together to complete a defined task.</li>
+   <li>Build and run the workflow and justify why each component gave the result it did.</li>
+   <li>Use terms like component, data, prompt, tool and interaction correctly to explain how my solution fits together.</li>
+  </ul></div>
+ <p class="sub">Come back to these at the end of the lesson and tick off what you can now do.</p>
+</section>
+
+<section class="slide">
+ <h2>Words to know</h2>
+ <dl>
+  <dt>component</dt><dd>one part of a workflow, such as the data, the prompt, the tool or the output</dd>
+  <dt>data</dt><dd>the information you supply to the workflow, containing no personal data</dd>
+  <dt>prompt</dt><dd>the clear instruction that directs the tool on what to do with the data</dd>
+  <dt>tool</dt><dd>the AI step that carries out the task using your data and prompt</dd>
+  <dt>interaction</dt><dd>the way one component hands off to and shapes another so the workflow completes the task</dd>
+ </dl>
+</section>
+
+<section class="slide">
+ <p class="sub">Part 1 of 3</p>
+ <h2>Components that interact</h2>
+ <p class="sub">Why is a solution not one magic step?</p>
+ <div class="flow" role="img" aria-label="Data and prompt direct the tool, which produces the output">
+  <div class="n d"><b>DATA</b><small>facts, examples, evidence</small></div>
+  <div class="arr">+</div>
+  <div class="n p"><b>PROMPT</b><small>instructions, question, goal</small></div>
+  <div class="arr">→</div>
+  <div class="n t"><b>TOOL</b><small>the AI step</small></div>
+  <div class="arr">→</div>
+  <div class="n o"><b>OUTPUT</b><small>answer, label, decision, prediction</small></div>
+ </div>
+ <p>A structured AI solution is a set of components that interact. You supply data, you write a prompt that tells the tool what to do, the tool does the work, and you evaluate the output against the problem you defined.</p>
+ <p>The interactions are the point: a vague prompt gives the tool nothing useful to do, and messy data gives a messy output no matter how good the tool is. When you design, you specify each component and think about how a change in one ripples through the others.</p>
+ <div class="box blue"><b class="t">Why it matters</b>Across the UAE, organisations build structured AI workflows to triage messages, screen documents and plan services – always as interacting components that are tested before anyone trusts them.</div>
+</section>
+
+<section class="slide">
+ <div class="act"><div class="h">Match the component to its job<small>Objective 1 · name the components. Tap a component, then the job it does.</small></div>
+ <div class="b"><div class="cols" id="match"></div><div class="fb" id="mfb"></div></div></div>
+</section>
+
+<section class="slide">
+ <div class="act case" data-case="0"><div class="h">Solution Architects · Case 1: The Vague Prompt</div><div class="b"></div></div>
+</section>
+
+<section class="slide">
+ <p class="sub">Part 2 of 3</p>
+ <h2>Define, then build</h2>
+ <p class="sub">What has to come first?</p>
+ <p>Before building anything, a designer states the defined problem clearly – what counts as a good solution. That definition tells you what data you need, what the prompt must ask for, and what a correct output looks like.</p>
+ <p>Then you build and test: run the workflow and verify that the output actually solves the defined problem, checked against a trusted source. If it fails, you know which component to adjust because you know what each one was meant to do.</p>
+ <div class="flow" role="img" aria-label="Input, process, output, then verify. If it matches, trust it. If not, trace back to the component that failed.">
+  <div class="n d"><b>INPUT</b><small>data, prompt, tool</small></div><div class="arr">→</div>
+  <div class="n t"><b>PROCESS</b><small>components interact</small></div><div class="arr">→</div>
+  <div class="n o"><b>OUTPUT</b><small>the system produces it</small></div><div class="arr">→</div>
+  <div class="n p"><b>VERIFY</b><small>matches? trust it. Does not match? trace back to the failed component</small></div>
+ </div>
+</section>
+
+<section class="slide">
+ <div class="act"><div class="h">Order the design steps<small>Objective 2 · build and run the workflow. Tap the steps from first to last.</small></div>
+ <div class="b"><div id="order"></div><div class="fb" id="ofb"></div><button id="oreset" class="noprint">Start again</button></div></div>
+</section>
+
+<section class="slide">
+ <div class="act case" data-case="1"><div class="h">Solution Architects · Case 2: The Missing Definition</div><div class="b"></div></div>
+</section>
+
+<section class="slide">
+ <p class="sub">Part 3 of 3</p>
+ <h2>Verify, don’t trust</h2>
+ <p class="sub">Can you trust a confident output?</p>
+ <h3>Check the components, not the polish</h3>
+ <p>Even a confident output can be wrong, so you check the components rather than trusting how polished the result sounds. Verifying against a trusted source is what turns a good-looking answer into a solution you can stand behind.</p>
+ <p>Using the words component, data, prompt, tool and interaction correctly lets you say exactly where a problem could enter – and which component to adjust when it does.</p>
+</section>
+
+<section class="slide">
+ <div class="act"><div class="h">Which statements are true?<small>Objective 3 · use the vocabulary correctly. Tap the THREE true statements.</small></div>
+ <div class="b"><div id="tf"></div><button class="pri" id="tfcheck">Check my answers</button><div class="fb" id="tfb"></div></div></div>
+</section>
+
+<section class="slide">
+ <div class="act case" data-case="2"><div class="h">Solution Architects · Case 3: The Confident Report</div><div class="b"></div></div>
+</section>
+
+<section class="slide">
+ <div class="act"><div class="h">UAE activity: Problem menu<small>Choose one UAE problem for your hands-on mission and worksheet.</small></div>
+ <div class="b" id="upm"></div></div>
+</section>
+
+<section class="slide">
+ <h2>Hands-on mission: design the four-component workflow</h2>
+ <p class="sub">Away from the screen. Simulated-AI cards, so no accounts or personal data are needed.</p>
+ <p><b>You need:</b> a problem menu card, component cards (data, prompt, tool, output), a simulated-AI card deck, a trusted-source reference sheet and a pencil.</p>
+ <ol>
+  <li>Choose one defined problem and write, in one line, what a good solution looks like.</li>
+  <li>Specify your data component – exactly what you will supply, with no personal data.</li>
+  <li>Write your prompt so the tool knows exactly what to do with the data.</li>
+  <li>Place the tool card that matches your prompt and run the workflow.</li>
+  <li>Record the output and note one interaction between two components.</li>
+  <li>Evaluate the output against the problem and a trusted source, then tick or fix each component.</li>
+ </ol>
+ <div class="box"><b class="t">No cards?</b>Go fully human: one student is the tool and follows the pair’s written prompt exactly, using only the supplied data, while the others evaluate the output.</div>
+ <div class="box purple"><b class="t">Think about it</b>If two designers built a workflow for the same defined problem but wrote different prompts, could they both produce a correct solution? What would have to be true?</div>
+ <div class="box"><b class="t">Cross-curricular link · Art &amp; Design</b>Designing the workflow follows the design process: write a clear brief (the defined problem), specify each component like materials and tools, build a prototype, then evaluate the output against the brief and refine the part that let it down.</div>
+</section>
+
+<section class="slide">
+ <h2>Lesson summary</h2>
+ <p>You designed a solution as components that interact – and tested whether it holds.</p>
+ <ul>
+  <li>A structured solution is components – data, prompt, tool, output – that interact.</li>
+  <li>A change in one component ripples through the others.</li>
+  <li>Define the problem first, then build, run and evaluate.</li>
+  <li>Verify against a trusted source; a confident output can still be wrong.</li>
+ </ul>
+ <div class="box blue"><b class="t">Success criteria check: tick what you can now do</b>
+  <label style="display:block"><input type="checkbox"> I can design a structured workflow in which data, a prompt and a tool work together to complete a defined task.</label>
+  <label style="display:block"><input type="checkbox"> I can build and run the workflow and justify why each component gave the result it did.</label>
+  <label style="display:block"><input type="checkbox"> I can use terms like component, data, prompt, tool and interaction correctly to explain how my solution fits together.</label>
+ </div>
+ <div class="box green"><b class="t">My reflection</b>The component that mattered most in solving my defined problem was … because …
+ <textarea aria-label="My reflection"></textarea></div>
+ <p class="sub">Next: in the Lab you build it for real, fix the weakest part, and chain a second step.</p>
+</section>
+
+<section class="slide" id="ws">
+ <h2>Student worksheet: Designing a Solution</h2>
+ <p class="sub">Type your answers, then press Submit to send them to your teacher.</p>
+ <p>Name <input class="s" aria-label="Name"> Class <input class="s" aria-label="Class"> Date <input class="s" aria-label="Date"></p>
+ <h3>Define the problem</h3>
+ <p>Write the defined problem and, in one line, what a good solution looks like.</p><textarea></textarea>
+ <h3>Specify your components</h3>
+ <table><tr><th>Component</th><th>What it is in your workflow</th></tr>
+ <tr><td>Data</td><td><textarea></textarea></td></tr><tr><td>Prompt</td><td><textarea></textarea></td></tr>
+ <tr><td>Tool (AI step)</td><td><textarea></textarea></td></tr><tr><td>Output</td><td><textarea></textarea></td></tr></table>
+ <h3>Run and evaluate</h3>
+ <table><tr><th>Run</th><th>Output produced</th><th>Solves the defined problem? (tick or fix)</th></tr>
+ <tr><td>1</td><td><textarea></textarea></td><td><textarea></textarea></td></tr>
+ <tr><td>2</td><td><textarea></textarea></td><td><textarea></textarea></td></tr></table>
+ <h3>Exit ticket</h3>
+ <p>Name your four components in order, describe one interaction between two of them, and write one reason your output could be wrong even when it looks confident.</p><textarea></textarea>
+ <h3>Challenge (stretch)</h3>
+ <p>Choose a defined problem of your own and design a structured AI workflow to solve it. Add a second tool step so the output of the first tool becomes the input of the next, and show how each component interaction keeps the solution reliable.</p><textarea></textarea>
+ <p class="noprint"><button class="pri" id="wsub">Submit worksheet</button></p>
+ <div class="fb noprint" id="wsst" role="status"></div>
+</section>
+
+</main>
+<nav><button id="prev" aria-label="Previous slide">◀ Back</button><div class="bar"><i id="bar"></i></div><span id="cnt"></span><button id="next" class="pri" aria-label="Next slide">Next ▶</button></nav>
+
+<script>
+// ===== TEACHER SETUP: connect the Submit button to your Google Form =====
+// 1. action: your form's "formResponse" address, e.g. https://docs.google.com/forms/d/e/FORM_ID/formResponse
+// 2. entries: the entry.NUMBER of each question. Leave a field as '' to skip it.
+const GOOGLE_FORM={
+ action:'',
+ entries:{name:'',cls:'',date:'',problem:'',data:'',prompt:'',tool:'',output:'',run1:'',run1ok:'',run2:'',run2ok:'',exit:'',challenge:'',prescore:'',pre1:'',pre2:'',pre3:'',pre4:'',pre5:'',case1:'',case2:'',case3:'',warmup:'',criteria:'',reflection:''}
+};
+// =========================================================================
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const slides=$$('.slide');let cur=0,tmode=null,tmax=0;
+function go(n,force){if(tmode&&!force){if(tmode==='follow')return;n=Math.min(n,tmax-1)}cur=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>s.classList.toggle('on',i===cur));
+ $('#bar').style.width=((cur+1)/slides.length*100)+'%';$('#cnt').textContent=(cur+1)+' / '+slides.length;
+ navState();scrollTo(0,0);history.replaceState(null,'','#'+(cur+1))}
+$('#prev').onclick=()=>go(cur-1);$('#next').onclick=()=>go(cur+1);
+addEventListener('keydown',e=>{if(/TEXTAREA|INPUT/.test(e.target.tagName))return;if(e.key==='ArrowRight'&&gate())go(cur+1);if(e.key==='ArrowLeft')go(cur-1)});
+
+// Match
+const pairs=[['Tool','the AI step that does the work'],['Output','the result you evaluate'],['Data','the information you supply'],['Prompt','the instruction that directs the tool']];
+let mc=null,mdone=0;
+const shuf=a=>[...a].sort(()=>Math.random()-.5);
+const L=pairs.map(p=>p[0]),R=shuf(pairs.map(p=>p[1]));
+const mEl=$('#match');
+mEl.innerHTML='<div id="ml"></div><div id="mr"></div>';
+L.forEach(t=>{const b=document.createElement('button');b.className='opt';b.textContent=t;b.dataset.k=t;$('#ml').append(b)});
+R.forEach(t=>{const b=document.createElement('button');b.className='opt';b.textContent=t;b.dataset.k=t;$('#mr').append(b)});
+$$('#ml .opt').forEach(b=>b.onclick=()=>{if(b.classList.contains('ok'))return;$$('#ml .opt').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');mc=b});
+$$('#mr .opt').forEach(b=>b.onclick=()=>{if(b.classList.contains('ok'))return;const fb=$('#mfb');
+ if(!mc){fb.className='fb';fb.textContent='Pick a component on the left first.';return}
+ const right=pairs.find(p=>p[0]===mc.dataset.k)[1]===b.dataset.k;
+ if(right){mc.classList.replace('sel','ok');b.classList.add('ok');mc=null;mdone++;fb.className='fb ok';fb.textContent=mdone===4?'All matched. Each component has one clear job.':'Correct.'}
+ else{fb.className='fb no';fb.textContent='Not that one. Think about what the component does in the workflow.'}});
+
+// Order
+const steps=['Define the problem and what a good solution looks like','Specify the data you will supply','Write the prompt that directs the tool','Run the tool to produce an output','Evaluate the output against the problem'];
+let oi=0;
+function buildOrder(){oi=0;$('#ofb').textContent='';$('#ofb').className='fb';const o=$('#order');o.innerHTML='';
+ shuf(steps).forEach(s=>{const b=document.createElement('button');b.className='opt';b.innerHTML='<b>?</b> '+s;
+  b.onclick=()=>{if(b.classList.contains('ok'))return;const f=$('#ofb');
+   if(s===steps[oi]){oi++;b.classList.add('ok');b.innerHTML='<b>'+oi+'</b> '+s;f.className='fb ok';f.textContent=oi===5?'Correct order: define first, build in the middle, evaluate last.':'Right, what comes next?'}
+   else{b.classList.add('no');setTimeout(()=>b.classList.remove('no'),600);f.className='fb no';f.textContent='Not yet. What must a designer know before choosing anything else?'}};o.append(b)})}
+buildOrder();$('#oreset').onclick=buildOrder;
+
+// True statements
+const tf=[['A change in one component never affects the others.',0],['A vague prompt gives the tool nothing useful to do.',1],['Even a confident output can be wrong, so you verify it.',1],['A polished-sounding output is always correct.',0],['A solution is components that interact, not one magic step.',1],['The tool understands the problem the way a person does.',0]];
+tf.forEach(([t,v])=>{const b=document.createElement('button');b.className='opt';b.textContent=t;b.dataset.v=v;b.onclick=()=>{if(!b.disabled)b.classList.toggle('sel')};$('#tf').append(b)});
+$('#tfcheck').onclick=()=>{const bs=$$('#tf .opt');let right=0,sel=0;
+ bs.forEach(b=>{const s=b.classList.contains('sel');if(s)sel++;if(s&&b.dataset.v==='1')right++;});
+ const f=$('#tfb');
+ if(right===3&&sel===3){bs.forEach(b=>{b.disabled=true;if(b.dataset.v==='1')b.classList.add('ok')});f.className='fb ok';f.textContent='All three true statements found.'}
+ else{f.className='fb no';f.textContent=sel!==3?'Choose exactly three statements.':'You have '+right+' of 3 right. Re-read the lesson and try again.'}};
+
+// Cases
+const CASELOG={};
+const cases=[
+ {q:'A team supplies clean data but writes the prompt “make it better.” The tool returns a muddle. Which component let the solution down?',o:['The prompt – it did not tell the tool what it should do here.','The tool is broken and should be swapped out for a brand new one.','Nothing at all – the muddled output is actually correct just as it is.','The data must be at fault, since a wrong output means the data was messy.'],a:0,why:'The data was clean. A vague prompt gives the tool nothing useful to do.'},
+ {q:'Two architects rush to build before agreeing what a good solution looks like. Halfway through they cannot tell if the output is right. What should have come first?',o:['Run the tool many times and keep the most polished-looking output.','Skip the definition and just check the output at the very end.','Define the problem and say what a correct output looks like.','Pick the tool first, before you decide anything else about the task.'],a:2,why:'The definition tells you what data you need, what the prompt must ask for, and what a correct output looks like.'},
+ {q:'A workflow returns a tidy, confident-sounding report. It looks impressive. Before you trust it, what do you do?',o:['Run it again and simply hope for a better output the next time round.','Trust it at once, since a neat and confident output must be right.','Verify it against the defined problem and a known trusted source.','Change every single component at once before you decide to trust it.'],a:2,why:'A confident output can still be wrong. Verifying against a trusted source is what makes it a solution you can stand behind.'}];
+let solved=new Set();
+$$('.case').forEach(el=>{const c=cases[el.dataset.case],b=el.querySelector('.b');
+ b.innerHTML='<div class="box"><b>'+c.q+'</b></div>';
+ c.o.forEach((t,i)=>{const x=document.createElement('button');x.className='opt';x.innerHTML='<b>'+'ABCD'[i]+'</b> '+t;
+  x.onclick=()=>{if(b.dataset.done)return;const f=b.querySelector('.fb');const L=(CASELOG[el.dataset.case]=CASELOG[el.dataset.case]||{n:0,first:'ABCD'[i],ok:false});L.n++;if(i===c.a)L.ok=true;
+   if(i===c.a){b.dataset.done=1;x.classList.add('ok');f.className='fb ok';f.textContent='Case cracked. '+c.why;solved.add(el.dataset.case);$('#cases').textContent='Cases cracked: '+solved.size+' / 3'}
+   else{x.classList.add('no');x.disabled=true;f.className='fb no';f.textContent='Not quite. Try another answer.'}};b.append(x)});
+ const f=document.createElement('div');f.className='fb';b.append(f)});
+
+// Warm-up 2: simulated workflow
+const WF=[
+{n:'Sort the items',goal:'Group the six items into Food, Sports, Arts and Science.',
+ data:{clean:'pizza, football, drawing, volcano, basketball, painting',messy:'pizza, footbal, drawing, volcano, painting'},
+ prompts:['Tidy this up.','Sort these into groups.','Sort the items into Food, Sports, Arts and Science. List each item under one heading.'],
+ out:{clean:['basketball, drawing, football, painting, pizza, volcano','Group 1: pizza, volcano|Group 2: football, basketball|Group 3: drawing, painting','Food: pizza|Sports: football, basketball|Arts: drawing, painting|Science: volcano'],
+      messy:['drawing, footbal, painting, pizza, volcano','Group 1: pizza, volcano|Group 2: footbal|Group 3: drawing, painting','Food: pizza|Sports: footbal (not recognised)|Arts: drawing, painting|Science: volcano|Only five items were supplied.']}}];
+let wsc=0,wdk='clean',wpk=0,wres=null,wlog=[];
+const DMSG={prompt:'Yes. The prompt did not say what to produce, so the tool made its best guess from the words it was given.',data:'Yes. The prompt was clear, but the data had mistakes or was missing, and the tool cannot fix what you did not supply.'};
+function wfRender(){const S=WF[wsc];
+ let h=WF.length<2?'':'<div class="cols" style="margin-bottom:8px">'+WF.map((x,i)=>'<button class="opt'+(i===wsc?' sel':'')+'" data-a="sc" data-v="'+i+'">'+x.n+'</button>').join('')+'</div>';
+ h+='<div class="box blue"><b>Defined problem:</b> '+S.goal+'</div>';
+ h+='<p style="margin:10px 0 0"><b>1. Choose the data</b></p>'+['clean','messy'].map(k=>'<button class="opt'+(wdk===k?' sel':'')+'" data-a="dk" data-v="'+k+'"><b>'+(k==='clean'?'Clean':'Messy')+':</b> '+S.data[k]+'</button>').join('');
+ h+='<p style="margin:10px 0 0"><b>2. Choose the prompt</b></p>'+S.prompts.map((t,i)=>'<button class="opt'+(wpk===i?' sel':'')+'" data-a="pk" data-v="'+i+'">“'+t+'”</button>').join('');
+ h+='<p><button class="pri" data-a="run">3. Run the tool</button></p>';
+ if(wres){h+='<div class="box"><b>Tool output</b><br>'+S.out[wdk][wpk].split('|').join('<br>')+'</div>';
+  if(wres.ok){h+='<div class="fb ok">Matches the defined problem. Now switch to the messy data. Does the same prompt still work?</div>'}
+  else{h+='<div class="fb no">Does not match the defined problem.</div><p style="margin:10px 0 0"><b>4. Which component let the solution down?</b></p><div class="cols">'+['data','prompt','tool'].map(k=>'<button class="opt'+(wres.dg===k?(k===wres.fault?' ok':' no'):'')+'" data-a="dg" data-v="'+k+'"'+(wres.done?' disabled':'')+'>'+k[0].toUpperCase()+k.slice(1)+'</button>').join('')+'</div>';
+   if(wres.msg)h+='<div class="fb '+(wres.done?'ok':'no')+'">'+wres.msg+'</div>'}}
+ if(wlog.length){h+='<h3>Run log</h3><table><tr><th>Run</th><th>Data</th><th>Prompt</th><th>Matches?</th></tr>'+wlog.slice(-6).map((r,i)=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td><td>'+r[2]+'</td><td>'+(r[3]?'Tick':'Fix')+'</td></tr>').join('')+'</table>'}
+ $('#wf').innerHTML=h}
+$('#wf').onclick=e=>{const t=e.target.closest('[data-a]');if(!t||t.disabled)return;const a=t.dataset.a,v=t.dataset.v;
+ if(a==='sc'){wsc=+v;wpk=0;wres=null}
+ else if(a==='dk'){wdk=v;wres=null}
+ else if(a==='pk'){wpk=+v;wres=null}
+ else if(a==='run'){const ok=wpk===2&&wdk==='clean';wres={ok,fault:ok?null:(wpk<2?'prompt':'data')};wlog.push([wlog.length+1,wdk==='clean'?'Clean':'Messy','Prompt '+(wpk+1),ok])}
+ else if(a==='dg'){wres.dg=v;if(v===wres.fault){wres.done=true;wres.msg=DMSG[v]+' Try a different choice and run again.'}
+  else if(v==='tool'){wres.msg='The tool did exactly what the prompt and data told it to. Look at the other two components first.'}
+  else{wres.msg='Not quite. Compare the prompt with the defined problem, then check the data.'}}
+ wfRender()};
+wfRender();
+// Pre-assessment (timed)
+const PQ=[
+{q:'Which of these is the data in an AI workflow?',o:['The instruction you type','The AI step that does the work','The facts you supply for the tool to use','The answer the tool gives back'],a:2,part:'Part 1'},
+{q:'What does a prompt do?',o:['It tells the tool what to do with the data','It checks whether the answer is true','It stores the data for later','It replaces the need for data'],a:0,part:'Part 1'},
+{q:'You give a tool clean data, but your instruction is “do something with this.” The output is poor. What is the most likely cause?',o:['The data was messy','The tool is broken','The prompt was too vague','The output is correct'],a:2,part:'Part 1'},
+{q:'What should a designer do first?',o:['Run the tool and see what happens','Pick the tool','Write the prompt','Define the problem and what a good solution looks like'],a:3,part:'Part 2'},
+{q:'An AI tool gives a confident, polished answer. What should you do before you trust it?',o:['Check it against the problem and a trusted source','Trust it, because it sounds sure','Run it again and hope','Change all the components'],a:0,part:'Part 3'}];
+const PT=30;let pi=-1,pans=[],ptm=null,pleft=PT;
+function pUpd(){const t=$('#ptime');if(!t)return;t.textContent=pleft+'s';t.style.color=pleft<=10?'var(--bad)':'inherit';$('#pbar').style.width=(pleft/PT*100)+'%'}
+function pNext(){clearInterval(ptm);pi++;preRender()}
+function pTick(){if(slides[cur]!==$('#pre').closest('.slide'))return;pleft--;pUpd();if(pleft<=0){pans[pi]=-1;pNext()}}
+function preRender(){const el=$('#pre');
+ if(pi===-1){el.innerHTML='<div class="box"><b>You have '+PT+' seconds for each question.</b> If time runs out, the question is marked as not answered and you move on. The timer pauses if you leave this slide.</div><button class="pri" id="prestart">Start</button>';return}
+ if(pi<PQ.length){const Q=PQ[pi];pleft=PT;
+  el.innerHTML='<div style="display:flex;align-items:center;gap:10px"><span class="sub">Question '+(pi+1)+' of '+PQ.length+'</span><div style="flex:1;height:8px;background:var(--line);border-radius:9px;overflow:hidden"><i id="pbar" style="display:block;height:100%;background:var(--gold);width:100%;transition:width 1s linear"></i></div><b id="ptime" style="min-width:3ch">'+PT+'s</b></div><div class="box"><b>'+Q.q+'</b></div>'+Q.o.map((t,i)=>'<button class="opt" data-i="'+i+'"><b>'+'ABCD'[i]+'</b> '+t+'</button>').join('');
+  clearInterval(ptm);ptm=setInterval(pTick,1000);return}
+ const sc=PQ.filter((Q,i)=>pans[i]===Q.a).length;
+ const lv=sc<=1?['Starting out','This is new to you, and that is fine. Pay close attention to Parts 1 to 3 and ask questions early.']:sc<=3?['Developing','You know some of this already. Focus on the parts marked “Revisit” below.']:['Secure','You already know a lot. Aim to justify your choices and tackle the challenge tasks.'];
+ el.innerHTML='<div class="box green"><b class="t">Your score: '+sc+' out of '+PQ.length+' · '+lv[0]+'</b>'+lv[1]+'</div>'
+  +PQ.map((Q,i)=>{const ok=pans[i]===Q.a;return '<div class="box" style="border-left-color:var(--'+(ok?'ok':'bad')+')"><b>'+(ok?'Correct. ':pans[i]===-1?'Time ran out. ':'Not yet. ')+'</b>'+Q.q+(ok?'':'<br>Answer: '+Q.o[Q.a]+'<br><i>Revisit '+Q.part+'</i>')+'</div>'}).join('')
+  +'<button id="prere">Try again</button>'}
+$('#pre').onclick=e=>{const b=e.target.closest('.opt');
+ if(b&&pi>=0&&pi<PQ.length){pans[pi]=+b.dataset.i;pNext()}
+ if(e.target.id==='prestart'){pi=0;pans=[];preRender()}
+ if(e.target.id==='prere'){clearInterval(ptm);pi=-1;pans=[];preRender()}};
+preRender();
+// Submit: sends the worksheet plus the pre-assessment, case and warm-up answers
+$('#wsub').onclick=async()=>{const st=$('#wsst'),G=GOOGLE_FORM;
+ const keys=['name','cls','date','problem','data','prompt','tool','output','run1','run1ok','run2','run2ok','exit','challenge'];
+ const f=$$('#ws input.s, #ws textarea'),V={};
+ keys.forEach((k,i)=>V[k]=f[i]?f[i].value:'');
+ if(!V.name.trim()){st.className='fb no noprint';st.textContent='Please type your name first.';return}
+ if(!G.action){st.className='fb no noprint';st.textContent='Submit is not connected yet. Ask your teacher to add the Google Form link.';return}
+ V.prescore=pans.length===PQ.length?PQ.filter((Q,i)=>pans[i]===Q.a).length+' / '+PQ.length:'not taken';
+ PQ.forEach((Q,i)=>V['pre'+(i+1)]=pans[i]===undefined?'not answered':pans[i]===-1?'time ran out':Q.o[pans[i]]+(pans[i]===Q.a?' (correct)':' (incorrect)'));
+ [0,1,2].forEach(i=>{const L=CASELOG[i];V['case'+(i+1)]=L?(L.ok?'Solved':'Not solved')+' after '+L.n+' attempt(s), first choice '+L.first:'not attempted'});
+ V.warmup=wlog.length?wlog.map(r=>'Run '+r[0]+' '+r[1]+' data, '+r[2]+': '+(r[3]?'tick':'fix')).join('; '):'not attempted';
+ V.criteria=$$('input[type=checkbox]:checked').length+' of '+$$('input[type=checkbox]').length+' ticked';
+ V.reflection=($('textarea[aria-label="My reflection"]')||{}).value||'';
+ const body=new URLSearchParams();
+ Object.keys(G.entries).forEach(k=>{if(G.entries[k]&&k in V)body.append(G.entries[k],V[k])});
+ $('#wsub').disabled=true;st.className='fb noprint';st.textContent='Sending…';
+ try{await fetch(G.action,{method:'POST',mode:'no-cors',body});st.className='fb ok noprint';st.textContent='Submitted. Thank you!'}
+ catch(e){$('#wsub').disabled=false;st.className='fb no noprint';st.textContent='Could not submit. Check your connection and try again.'}};
+// UAE activities
+const UP=[
+{n:'School transport messages',p:'Sort parent messages about school transport, events and health into one group each.',g:'Every message gets exactly one label: Transport, Events or Health.',t:'The school office list of message types'},
+{n:'Museum visitor questions',p:'Group visitor questions for a museum in Abu Dhabi.',g:'Every question is grouped under Tickets, Opening times or Directions.',t:'The museum’s own website'},
+{n:'Desert reserve trip timetable',p:'Plan a one-day class trip to a desert conservation reserve.',g:'A one-day timetable where every activity starts and ends inside the opening hours.',t:'The reserve’s published opening hours'},
+{n:'Canteen recycling guide',p:'Help students sort canteen waste at a UAE school.',g:'Each item is placed in Paper, Plastic or Food waste with a short reason.',t:'The school’s recycling guide'}];
+let upi=-1;
+function upmRender(){let h='<div class="cols">'+UP.map((x,i)=>'<button class="opt'+(i===upi?' sel':'')+'" data-p="'+i+'"><b>'+x.n+'</b><br><span class="sub">'+x.p+'</span></button>').join('')+'</div><p><button data-r="1">Surprise me</button></p>';
+ if(upi>=0){const x=UP[upi];h+='<div class="box green"><b class="t">Your defined problem</b>'+x.p+'<br><b>A good solution looks like:</b> '+x.g+'<br><b>Trusted source to check against:</b> '+x.t+'</div><p class="sub">Copy this onto your worksheet. Then decide your data, write your prompt and run your workflow. Use sample data only, with no personal details.</p>'}
+ $('#upm').innerHTML=h}
+$('#upm').onclick=e=>{const p=e.target.closest('[data-p]'),r=e.target.closest('[data-r]');if(p)upi=+p.dataset.p;if(r)upi=Math.floor(Math.random()*UP.length);if(p||r)upmRender()};
+upmRender();
+// Student details on first slide
+const sn=$('#sname'),sg=$('#sgrade');
+function syncWS(){const w=$$('#ws input.s');if(w[0])w[0].value=sn.value;if(w[1])w[1].value=sg.value}
+sn.oninput=sg.oninput=()=>{syncWS();if(sn.value.trim())$('#sfb').textContent=''};
+(()=>{const w=$$('#ws input.s');if(w[2])w[2].value=new Date().toLocaleDateString('en-GB');syncWS()})();
+function gate(){if(cur===0&&!sn.value.trim()){const f=$('#sfb');f.className='fb no';f.textContent='Please type your name to start.';sn.focus();return false}return true}
+$('#sstart').onclick=()=>{if(gate())go(1)};
+$('#next').onclick=()=>{if(gate())go(cur+1)};
+// Teacher slide control (only when the lesson is opened with ?room=CODE)
+const CTRL_SERVER='https://ntfy.sh';
+const ROOM=(new URLSearchParams(location.search).get('room')||'').toLowerCase();
+function navState(){$('#prev').disabled=cur===0||tmode==='follow';$('#next').disabled=cur===slides.length-1||tmode==='follow'||(tmode==='limit'&&cur>=tmax-1)}
+function applyCtl(m){const b=$('#tban');if(!m)return;
+ if(m.mode==='free'){tmode=null;b.hidden=true;navState();return}
+ tmax=Math.min(slides.length,Math.max(1,+m.slide||1));tmode=m.mode==='limit'?'limit':'follow';
+ b.hidden=false;b.textContent=tmode==='follow'?'Your teacher is moving the slides for the class.':'Your teacher unlocks the slides as the lesson goes on. You can go back at any time.';
+ if(tmode==='follow'||cur>tmax-1)go(tmax-1,true);else navState()}
+if(/^[a-z0-9]{6,32}$/.test(ROOM)){const T=CTRL_SERVER+'/designing-solution-'+ROOM;
+ fetch(T+'/json?poll=1&since=12h').then(r=>r.text()).then(tx=>{const L=tx.trim().split('\n').filter(Boolean).map(l=>{try{return JSON.parse(l)}catch(e){return null}}).filter(m=>m&&m.event==='message');if(L.length)try{applyCtl(JSON.parse(L[L.length-1].message))}catch(e){}}).catch(()=>{});
+ try{const es=new EventSource(T+'/sse');es.onmessage=ev=>{try{const m=JSON.parse(ev.data);if(m.event==='message')applyCtl(JSON.parse(m.message))}catch(e){}}}catch(e){}}
+go(Math.max(0,(parseInt(location.hash.slice(1))||1)-1));
+</script>
+</body>
+</html>

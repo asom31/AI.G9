@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Teacher dashboard – Designing a Solution</title>
+<style>
+:root{--red:#b8123c;--gold:#d18a0a;--ink:#16213a;--mut:#5b6679;--bg:#fbfaf8;--card:#fff;--line:#e5dfd6;--ok:#127a46;--bad:#b42318;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--ink:#f1eee8;--mut:#a9b1c0;--bg:#141822;--card:#1d2330;--line:#323a4b;--red:#e5476b;--gold:#e3a53a;--ok:#4cc58a;--bad:#ff7a6b;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",Roboto,Arial,sans-serif}
+header{background:var(--red);color:#fff;padding:12px 20px;font-weight:700}
+main{max-width:1000px;margin:0 auto;padding:20px}
+h1{font:700 28px/1.2 Georgia,serif;margin:.2em 0}h2{font-size:18px;margin:22px 0 8px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0}
+.sub{color:var(--mut);font-size:14px}
+button,select,input[type=text]{font:inherit;color:inherit;background:var(--card);border:2px solid var(--line);border-radius:8px;padding:7px 12px}
+button{cursor:pointer}button.pri{background:var(--red);color:#fff;border-color:var(--red)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.stat b{display:block;font-size:30px;line-height:1.1}
+.bar{margin:8px 0}.bar .l{display:flex;justify-content:space-between;font-size:14px}
+.bar .t{height:20px;background:var(--line);border-radius:6px;overflow:hidden}.bar .t i{display:block;height:100%}
+details{border:1px solid var(--line);border-radius:10px;margin:8px 0;background:var(--card)}
+summary{cursor:pointer;padding:10px 14px;display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr;gap:8px;align-items:center}
+.pill{display:inline-block;border-radius:99px;padding:1px 10px;font-size:13px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.mid{color:var(--gold)}
+.det{padding:4px 16px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:10px 20px}
+.det div{border-left:3px solid var(--line);padding-left:10px}.det b{display:block;font-size:13px;color:var(--mut)}
+.det p{margin:0;white-space:pre-wrap;word-break:break-word}
+code{background:var(--line);padding:1px 5px;border-radius:4px;font-size:14px}
+@media (max-width:640px){summary{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<header>Teacher dashboard · Designing a Solution · Grade 9 AI, Week 3</header>
+<main>
+<h1>Student answers</h1>
+<p class="sub">Your students’ answers are saved in your Google Form’s response sheet. Load them here to see scores and answers.</p>
+
+<div class="card">
+ <b>1. Load responses</b>
+ <div class="row" style="margin-top:8px">
+  <label>Upload a CSV: <input type="file" id="file" accept=".csv,text/csv"></label>
+ </div>
+ <p class="sub">In the form’s <b>Responses</b> tab, open the linked Google Sheet, then choose <b>File → Download → CSV</b>. The file is read in your browser only. Nothing is uploaded, so student names stay private.</p>
+ <details style="border:0;margin:0"><summary style="display:block;padding:0;color:var(--mut)">Or load live from a published sheet link (optional)</summary>
+  <div class="row" style="margin-top:8px"><input type="text" id="url" size="44" placeholder="https://docs.google.com/spreadsheets/d/e/…/pub?output=csv" aria-label="Published CSV link"><button id="go">Load</button><button id="refresh">Refresh</button></div>
+  <p class="sub">Warning: publishing a sheet to the web lets anyone with the link read it, including student names. Use the upload above if you are unsure.</p>
+ </details>
+ <div class="fb" id="msg" role="status" style="margin-top:6px"></div>
+</div>
+
+<div class="card" id="ctl">
+ <b>Slide control (optional)</b>
+ <p class="sub">Control what students see during the lesson. Students must open the lesson with the link made below.</p>
+ <div class="row"><label>Class code <input type="text" id="room" size="14"></label><button id="newroom">New code</button>
+  <label>Mode <select id="cmode"><option value="follow">Everyone follows my slide</option><option value="limit">Students can go back, but not ahead</option></select></label></div>
+ <div class="row" style="margin-top:8px"><label>Lesson address <input type="text" id="lurl" size="42" placeholder="https://username.github.io/repo/index.html"></label><button id="copyl">Copy student link</button></div>
+ <div class="row" style="margin-top:8px"><button id="cprev">◀ Previous</button><button id="cnext" class="pri">Next ▶</button><span id="cnow" class="sub"></span><button id="cfree">Give students free control</button></div>
+ <div id="slist" style="margin-top:8px"></div>
+ <div class="fb" id="cmsg" role="status"></div>
+ <p class="sub">This sends only a slide number and the mode, through the free public service ntfy.sh, using your class code as a private channel name. No student names or answers are sent. Keep the long random code within your class.</p>
+</div>
+
+<div id="app" hidden>
+ <div class="card row">
+  <label>Class <select id="fcls"></select></label>
+  <label>Sort <select id="sort"><option value="name">Name</option><option value="low">Lowest pre-assessment score first</option><option value="high">Highest pre-assessment score first</option></select></label>
+  <input type="text" id="q" placeholder="Search names or answers" aria-label="Search">
+ </div>
+ <div class="stats" id="stats"></div>
+ <h2>Pre-assessment: how the class did</h2>
+ <div class="card" id="lv"></div>
+ <h2>Pre-assessment: percentage correct by question</h2>
+ <div class="card" id="pq"></div>
+ <h2>Cases: solved on the first attempt</h2>
+ <div class="card" id="cs"></div>
+ <h2>Students</h2>
+ <div id="list"></div>
+</div>
+
+<div class="card sub">
+ <b>Name your Google Form questions like this</b> so the dashboard can find them:<br>
+ <code>Name</code> <code>Class</code> <code>Date</code> <code>Defined problem</code> <code>Data</code> <code>Prompt</code> <code>Tool</code> <code>Output</code> <code>Run 1 output</code> <code>Run 1 solves it?</code> <code>Run 2 output</code> <code>Run 2 solves it?</code> <code>Exit ticket</code> <code>Challenge</code> <code>Pre-assessment score</code> <code>Pre Q1</code> … <code>Pre Q5</code> <code>Case 1</code> <code>Case 2</code> <code>Case 3</code> <code>Warm-up</code> <code>Criteria</code> <code>Reflection</code>
+</div>
+</main>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=t=>String(t==null?'':t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function parseCSV(t){const r=[];let row=[],f='',q=false;t=t.replace(/^\uFEFF/,'');
+ for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+  else if(c==='"')q=true;else if(c===','){row.push(f);f=''}
+  else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);f='';if(row.some(x=>x!==''))r.push(row);row=[]}
+  else f+=c}
+ row.push(f);if(row.some(x=>x!==''))r.push(row);return r}
+const M={name:/^name$/,cls:/^class$/,date:/^date$/,problem:/defined problem/,data:/^data$/,prompt:/^prompt$/,tool:/^tool/,output:/^output$/,run1:/run 1 output/,run1ok:/run 1 solves/,run2:/run 2 output/,run2ok:/run 2 solves/,exit:/exit ticket/,challenge:/challenge/,score:/pre-?assessment score/,pre1:/^pre ?(q|question)? ?1$/,pre2:/^pre ?(q|question)? ?2$/,pre3:/^pre ?(q|question)? ?3$/,pre4:/^pre ?(q|question)? ?4$/,pre5:/^pre ?(q|question)? ?5$/,case1:/^case ?1$/,case2:/^case ?2$/,case3:/^case ?3$/,warmup:/warm/,criteria:/criteria/,reflection:/reflection/};
+const LABEL={cls:'Class',date:'Date',problem:'Defined problem',data:'Data',prompt:'Prompt',tool:'Tool',output:'Output',run1:'Run 1 output',run1ok:'Run 1 solves it?',run2:'Run 2 output',run2ok:'Run 2 solves it?',exit:'Exit ticket',challenge:'Challenge',pre1:'Pre Q1',pre2:'Pre Q2',pre3:'Pre Q3',pre4:'Pre Q4',pre5:'Pre Q5',case1:'Case 1',case2:'Case 2',case3:'Case 3',warmup:'Warm-up',criteria:'Success criteria',reflection:'Reflection'};
+let S=[];
+function load(text){const rows=parseCSV(text);if(rows.length<2){msg('No responses found in that file.',1);return}
+ const head=rows[0].map(h=>h.trim().toLowerCase()),idx={};
+ Object.keys(M).forEach(k=>{const i=head.findIndex(h=>M[k].test(h));if(i>=0)idx[k]=i});
+ if(idx.name===undefined){msg('Could not find a “Name” column. Check the question names below.',1);return}
+ S=rows.slice(1).map(r=>{const o={};Object.keys(idx).forEach(k=>o[k]=(r[idx[k]]||'').trim());
+  const m=/(\d+)\s*\/\s*(\d+)/.exec(o.score||'');o.sc=m?+m[1]:null;o.n=m?+m[2]:5;return o});
+ msg('Loaded '+S.length+' response'+(S.length===1?'':'s')+'.');$('#app').hidden=false;
+ const cl=[...new Set(S.map(x=>x.cls).filter(Boolean))].sort();
+ $('#fcls').innerHTML='<option value="">All classes</option>'+cl.map(c=>'<option>'+esc(c)+'</option>').join('');render()}
+function msg(t,bad){const m=$('#msg');m.textContent=t;m.className='fb '+(bad?'bad':'ok')}
+const lvl=s=>s==null?'Not taken':s<=1?'Starting out':s<=3?'Developing':'Secure';
+const col=p=>p>=67?'var(--ok)':p>=34?'var(--gold)':'var(--bad)';
+function render(){const c=$('#fcls').value,q=$('#q').value.toLowerCase(),so=$('#sort').value;
+ let L=S.filter(x=>(!c||x.cls===c)&&(!q||Object.values(x).join(' ').toLowerCase().includes(q)));
+ L.sort((a,b)=>so==='name'?(a.name||'').localeCompare(b.name||''):so==='low'?(a.sc??99)-(b.sc??99):(b.sc??-1)-(a.sc??-1));
+ const sc=L.filter(x=>x.sc!=null),avg=sc.length?(sc.reduce((a,x)=>a+x.sc,0)/sc.length).toFixed(1):'–';
+ const subm=L.filter(x=>x.reflection).length;
+ $('#stats').innerHTML=[['Responses',L.length],['Average pre-assessment (out of 5)',avg],['Wrote a reflection',subm+' / '+L.length]].map(([a,b])=>'<div class="card stat"><b>'+b+'</b>'+a+'</div>').join('');
+ const lc={'Starting out':0,'Developing':0,'Secure':0,'Not taken':0};L.forEach(x=>lc[lvl(x.sc)]++);
+ $('#lv').innerHTML=Object.entries(lc).map(([k,v])=>{const p=L.length?Math.round(v/L.length*100):0;return '<div class="bar"><div class="l"><span>'+k+'</span><span><b>'+v+'</b> ('+p+'%)</span></div><div class="t"><i style="width:'+p+'%;background:var(--gold)"></i></div></div>'}).join('');
+ $('#pq').innerHTML=[1,2,3,4,5].map(n=>{const a=L.filter(x=>x['pre'+n]);const ok=a.filter(x=>/\(correct\)/.test(x['pre'+n])).length,to=a.filter(x=>/time ran out/.test(x['pre'+n])).length,p=a.length?Math.round(ok/a.length*100):0;
+  return '<div class="bar"><div class="l"><span>Question '+n+(to?' · '+to+' timed out':'')+'</span><span><b>'+p+'%</b> ('+ok+'/'+a.length+')</span></div><div class="t"><i style="width:'+p+'%;background:'+col(p)+'"></i></div></div>'}).join('');
+ $('#cs').innerHTML=[1,2,3].map(n=>{const a=L.filter(x=>x['case'+n]);const f=a.filter(x=>/Solved after 1 /.test(x['case'+n])).length,p=a.length?Math.round(f/a.length*100):0;
+  return '<div class="bar"><div class="l"><span>Case '+n+'</span><span><b>'+p+'%</b> ('+f+'/'+a.length+')</span></div><div class="t"><i style="width:'+p+'%;background:'+col(p)+'"></i></div></div>'}).join('');
+ $('#list').innerHTML=L.map(x=>{const lv=lvl(x.sc),cl=x.sc==null?'':x.sc<=1?'bad':x.sc<=3?'mid':'ok';
+  const det=Object.keys(LABEL).filter(k=>x[k]&&k!=='cls').map(k=>'<div><b>'+LABEL[k]+'</b><p>'+esc(x[k])+'</p></div>').join('')||'<p class="sub">No other answers.</p>';
+  return '<details><summary><b>'+esc(x.name||'(no name)')+'</b><span>'+esc(x.cls||'')+'</span><span>'+(x.sc!=null?x.sc+' / '+x.n:'–')+'</span><span class="pill '+cl+'">'+lv+'</span></summary><div class="det">'+det+'</div></details>'}).join('')||'<p class="sub">No students match.</p>'}
+['fcls','sort'].forEach(i=>$('#'+i).onchange=render);$('#q').oninput=render;
+$('#file').onchange=e=>{const f=e.target.files[0];if(f)f.text().then(load)};
+let last='';const fetchURL=async()=>{const u=$('#url').value.trim();if(!/^https:\/\/docs\.google\.com\//.test(u)){msg('Paste the published CSV link from Google Sheets.',1);return}
+ try{const r=await fetch(u);if(!r.ok)throw 0;last=u;load(await r.text())}catch(e){msg('Could not load that link. Check it is published as CSV, or use the upload instead.',1)}};
+$('#go').onclick=fetchURL;$('#refresh').onclick=fetchURL;
+
+// Slide control
+const CTRL_SERVER='https://ntfy.sh';let tcur=1,tn=0,titles=[];
+const rnd=()=>{const a=new Uint8Array(10);crypto.getRandomValues(a);return [...a].map(x=>'abcdefghijklmnopqrstuvwxyz0123456789'[x%36]).join('')};
+const cm=(t,bad)=>{const m=$('#cmsg');m.textContent=t;m.className='fb '+(bad?'bad':'ok')};
+$('#room').value=localStorage.getItem('dsolRoom')||rnd();localStorage.setItem('dsolRoom',$('#room').value);
+$('#lurl').value=localStorage.getItem('dsolUrl')||(/^https?:/.test(location.href)?location.href.replace(/teacher\.html.*$/,'index.html'):'');
+$('#room').onchange=()=>localStorage.setItem('dsolRoom',$('#room').value.trim().toLowerCase());
+$('#newroom').onclick=()=>{$('#room').value=rnd();localStorage.setItem('dsolRoom',$('#room').value)};
+$('#lurl').onchange=()=>{localStorage.setItem('dsolUrl',$('#lurl').value.trim());loadTitles()};
+async function loadTitles(){const u=$('#lurl').value.trim();if(!u)return;
+ try{const t=await(await fetch(u)).text();const d=new DOMParser().parseFromString(t,'text/html');
+  titles=[...d.querySelectorAll('.slide')].map((sl,i)=>{const h=sl.querySelector('h1,h2')||sl.querySelector('.h');const n=h&&h.childNodes[0]?h.childNodes[0].textContent.trim():'';return n||'Slide '+(i+1)});tn=titles.length;listRender()}catch(e){listRender()}}
+function listRender(){$('#slist').innerHTML=titles.map((t,i)=>'<button class="'+(i+1===tcur?'pri':'')+'" data-s="'+(i+1)+'" style="display:block;width:100%;text-align:left;margin:3px 0">'+(i+1)+'. '+esc(t)+'</button>').join('');
+ $('#cnow').textContent='Slide '+tcur+(tn?' of '+tn:'')}
+async function send(slide,mode){const room=$('#room').value.trim().toLowerCase();
+ if(!/^[a-z0-9]{6,32}$/.test(room)){cm('Use a class code of 6 to 32 letters and numbers.',1);return}
+ try{await fetch(CTRL_SERVER+'/designing-solution-'+room,{method:'POST',body:JSON.stringify({slide,mode})});cm(mode==='free'?'Students now have free control.':'Sent: slide '+slide+'.')}
+ catch(e){cm('Could not send. Check your internet connection.',1)}}
+function goTo(n){if(tn)n=Math.min(tn,n);tcur=Math.max(1,n);listRender();send(tcur,$('#cmode').value)}
+$('#slist').onclick=e=>{const b=e.target.closest('[data-s]');if(b)goTo(+b.dataset.s)};
+$('#cprev').onclick=()=>goTo(tcur-1);$('#cnext').onclick=()=>goTo(tcur+1);
+$('#cmode').onchange=()=>send(tcur,$('#cmode').value);
+$('#cfree').onclick=()=>send(tcur,'free');
+$('#copyl').onclick=()=>{const u=$('#lurl').value.trim(),r=$('#room').value.trim().toLowerCase();
+ if(!/^https?:/.test(u)){cm('Type your lesson address first, for example https://username.github.io/repo/index.html.',1);return}
+ localStorage.setItem('dsolUrl',u);const link=u+(u.includes('?')?'&':'?')+'room='+r;
+ (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>cm('Student link copied. Share it with your class.')).catch(()=>prompt('Copy this student link:',link))};
+listRender();loadTitles();
+</script>
+</body>
+</html>
