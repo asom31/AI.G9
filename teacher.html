@@ -158,7 +158,7 @@ $('#cprev').onclick=()=>goTo(tcur-1);$('#cnext').onclick=()=>goTo(tcur+1);
 $('#cmode').onchange=()=>send(tcur,$('#cmode').value);
 $('#cfree').onclick=()=>send(tcur,'free');
 $('#copyl').onclick=()=>{const u=$('#lurl').value.trim(),r=$('#room').value.trim().toLowerCase();
- if(!/^https?:/.test(u)){cm('Type your lesson address first, for example https://username.github.io/repo/index.html.',1);return}
+ if(!/^https?:/.test(u)){cm('https://asom31.github.io/AI.G9/.',1);return}
  localStorage.setItem('dsolUrl',u);const link=u+(u.includes('?')?'&':'?')+'room='+r;
  (navigator.clipboard?navigator.clipboard.writeText(link):Promise.reject()).then(()=>cm('Student link copied. Share it with your class.')).catch(()=>prompt('Copy this student link:',link))};
 listRender();loadTitles();
